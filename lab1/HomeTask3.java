@@ -4,6 +4,7 @@ public class HomeTask3 {
 
         Thread producer = new Thread(() -> {
             try {
+                
                 for (int i = 0; i < 10; i++) {
                     buffer.produce();
                     System.out.println("Producer>> Produced item " + i);
