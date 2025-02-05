@@ -12,6 +12,7 @@ public class HomeTaskFromPreviousLabs {
             int id = i;
             new Thread(() -> {
                 try {
+                    
                     while (true) {
                         buffer.produce("Item-from P" + id);
                     }
