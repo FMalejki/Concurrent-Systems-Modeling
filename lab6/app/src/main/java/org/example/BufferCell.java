@@ -10,6 +10,7 @@ public class BufferCell implements CSProcess {
         this.in = in;
         this.out = out;
         this.id = id;
+        
     }
 
     public void run() {
