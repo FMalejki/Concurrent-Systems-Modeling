@@ -22,6 +22,7 @@ public class TablicaDispatcher implements CSProcess {
     private final AtomicInteger totalConsumed;
     private final long stopTimeMillis;
     
+    
     public TablicaDispatcher(int numProducers, int numBuffers, int numConsumers, 
                               int durationSeconds, boolean print) {
         this(numProducers, numBuffers, numConsumers, durationSeconds, print, 
