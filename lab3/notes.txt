@@ -1,0 +1,76 @@
+--- STATYSTYKI ---
+Producer-3   type=PRODUCER count=11777 lastActive=   2ms
+Producer-4   type=PRODUCER count=11988 lastActive=   1ms
+Producer-5   type=PRODUCER count=11931 lastActive=   2ms
+Consumer-2   type=CONSUMER count=17551 lastActive=   9ms  <-- POSSIBLE STARVATION (inactive ms=9)
+Producer-6   type=PRODUCER count=11617 lastActive=   3ms
+Consumer-1   type=CONSUMER count=18073 lastActive=   2ms
+Consumer-4   type=CONSUMER count=17458 lastActive=   1ms
+Consumer-3   type=CONSUMER count=17892 lastActive=   4ms
+Producer-1   type=PRODUCER count=11883 lastActive=   2ms
+Producer-2   type=PRODUCER count=11778 lastActive=   2ms
+
+
+Three lock statistics
+--- STATYSTYKI ---
+Producer-3   type=PRODUCER count=2568 lastActive= 816ms
+Producer-4   type=PRODUCER count=2601 lastActive= 814ms
+Producer-5   type=PRODUCER count=2592 lastActive= 815ms
+Consumer-2   type=CONSUMER count=3876 lastActive= 813ms
+Producer-6   type=PRODUCER count=2556 lastActive= 813ms
+Consumer-1   type=CONSUMER count=3876 lastActive= 813ms
+Consumer-4   type=CONSUMER count=3876 lastActive= 813ms
+Consumer-3   type=CONSUMER count=3878 lastActive= 813ms
+Producer-1   type=PRODUCER count=2619 lastActive= 814ms
+Producer-2   type=PRODUCER count=2580 lastActive= 813ms
+
+4 Conditions non-starvation version
+--- STATYSTYKI ---
+Producer-3   type=PRODUCER  count= 2675 lastActive=  1019ms
+Producer-4   type=PRODUCER  count= 2719 lastActive=  1020ms
+Producer-5   type=PRODUCER  count= 2537 lastActive=  1025ms
+Consumer-2   type=CONSUMER  count= 3964 lastActive=  1018ms
+Producer-6   type=PRODUCER  count= 2613 lastActive=  1022ms
+Consumer-1   type=CONSUMER  count= 3963 lastActive=  1018ms
+Consumer-4   type=CONSUMER  count= 3962 lastActive=  1018ms
+Consumer-3   type=CONSUMER  count= 3962 lastActive=  1018ms
+Producer-1   type=PRODUCER  count= 2611 lastActive=  1018ms
+Producer-2   type=PRODUCER  count= 2706 lastActive=  1021ms
+
+NOT RANDOM::!!!
+
+4 Conditions non-starvation version
+Producer-3   type=PRODUCER  count= 2531 lastActive=   206ms
+Producer-4   type=PRODUCER  count= 2536 lastActive=   207ms
+Producer-5   type=PRODUCER  count= 2526 lastActive=   207ms
+Consumer-2   type=CONSUMER  count= 3791 lastActive=   207ms
+Producer-6   type=PRODUCER  count= 2523 lastActive=   207ms
+Consumer-1   type=CONSUMER  count= 3791 lastActive=   207ms
+Consumer-4   type=CONSUMER  count= 3783 lastActive=   207ms
+Consumer-3   type=CONSUMER  count= 3794 lastActive=   206ms
+Producer-1   type=PRODUCER  count= 2522 lastActive=   208ms
+Producer-2   type=PRODUCER  count= 2531 lastActive=   207ms
+
+Three lock statistics
+Producer-3   type=PRODUCER count=2568 lastActive= 415ms
+Producer-4   type=PRODUCER count=2567 lastActive= 414ms
+Producer-5   type=PRODUCER count=2567 lastActive= 414ms
+Consumer-2   type=CONSUMER count=3864 lastActive= 414ms
+Producer-6   type=PRODUCER count=2607 lastActive= 414ms
+Consumer-1   type=CONSUMER count=3859 lastActive= 414ms
+Consumer-4   type=CONSUMER count=3863 lastActive= 414ms
+Consumer-3   type=CONSUMER count=3855 lastActive= 414ms
+Producer-1   type=PRODUCER count=2576 lastActive= 415ms
+Producer-2   type=PRODUCER count=2566 lastActive= 414ms
+
+2 Conditions
+Producer-3   type=PRODUCER count=3971 lastActive=   3ms
+Producer-4   type=PRODUCER count=3972 lastActive=   2ms
+Producer-5   type=PRODUCER count=3972 lastActive=   3ms
+Consumer-2   type=CONSUMER count=5881 lastActive=   4ms
+Producer-6   type=PRODUCER count=3970 lastActive=   3ms
+Consumer-1   type=CONSUMER count=5937 lastActive=   2ms
+Consumer-4   type=CONSUMER count=6064 lastActive=   3ms
+Consumer-3   type=CONSUMER count=5942 lastActive=   3ms
+Producer-1   type=PRODUCER count=3970 lastActive=   3ms
+Producer-2   type=PRODUCER count=3969 lastActive=   3ms
