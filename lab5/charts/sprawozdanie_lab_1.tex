@@ -1,0 +1,89 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[polish]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{titlesec}
+\usepackage{float}
+
+\geometry{margin=2cm}
+\titleformat{\section}{\large\bfseries}{}{0em}{}[\titlerule]
+
+\title{Analiza współbieżności: Zagłodzenie i Zakleszczenie}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{A) Zagłodzenie na 2 Condition}
+
+Zagłodzenie (Starvation) występuje, gdy system jako całość pracuje, ale konkretne wątki nie mogą uzyskać dostępu do zasobu przez nieograniczony czas.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{starvationTwoCond.png}
+    \caption{Statystyki wykazujące zagłodzenie dla rozwiązania z 2 Condition.}
+\end{figure}
+
+\section{B) Mechanizm zagłodzenia na 2 Condition}
+
+W rozwiązaniu opartym na dwóch zmiennych warunkowych (\texttt{NotEmpty}, \texttt{NotFull}):
+\begin{itemize}
+    \item Metoda \texttt{signal()} budzi tylko jeden wątek z kolejki danej zmiennej warunkowej.
+    \item Ze względu na mechanizm \textbf{Barging} (wpychanie się), nowy wątek, który właśnie wywołał \texttt{lock()}, może przejąć monitor przed wątkiem, który został właśnie obudzony.
+    \item Sygnał może trafić do wątku, który nie jest w stanie wykonać postępu (np. inny konsument, który zaraz znowu zaśnie), co sprawia, że wątki "pechowe" pozostają w stanie \texttt{WAITING} znacznie dłużej niż inne.
+\end{itemize}
+
+\section{C) Zagłodzenie na 4 Conditions z \texttt{hasWaiters()}}
+
+Mechanizm ten wynika z niestabilności metody \texttt{hasWaiters()} w środowisku wielowątkowym:
+\begin{itemize}
+    \item \texttt{hasWaiters()} sprawdza tylko fizyczną obecność w kolejce zmiennej warunkowej.
+    \item Istnieje "okno czasowe" między obudzeniem wątku (\texttt{signal}) a jego przejściem do kolejnego warunku. W tym czasie wątek jest niewidoczny dla \texttt{hasWaiters()}.
+    \item System operacyjny lub JVM może faworyzować wątki aktywne, co przy błędnej logice opartej na \texttt{hasWaiters()} powoduje ciągłe pomijanie wątków "tranzytowych".
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{starvation4CondHW.png}
+    \caption{Statystyki wykazujące zagłodzenie dla 4 Condition z hasWaiters.}
+\end{figure}
+
+\section{D) Zakleszczenie na 4 Conditions z \texttt{hasWaiters()}}
+
+Zakleszczenie (Deadlock) w tym przypadku to wynik \textbf{zgubionego sygnału (Lost Signal)}:
+\begin{itemize}
+    \item Dochodzi do wyścigu: wątek konsumenta sprawdza \texttt{hasWaiters(firstProd)}, otrzymuje wynik \texttt{false} (bo producent jest w trakcie przełączania się między warunkami) i nie wysyła sygnału.
+    \item W efekcie wszystkie wątki trafiają do stanu \texttt{await}, z którego nikt ich nie wybudzi.
+\end{itemize}
+
+\newpage
+\section{E) Wykresy porównawcze i statystyki}
+
+Poniżej zestawienie wyników dla różnych implementacji bufora:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.45\textwidth]{stats_plot_2_conditions.png}
+    \includegraphics[width=0.45\textwidth]{stats_plot_2_conditions_random.png}
+    \caption{Zestawienie dla 2 Conditions (Stały vs Random batch).}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.45\textwidth]{stats_plot_3_locks.png}
+    \includegraphics[width=0.45\textwidth]{stats_plot_3_locks_random.png}
+    \caption{Zestawienie dla rozwiązania na 3 Lockach.}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.45\textwidth]{stats_plot_4_conditions.png}
+    \includegraphics[width=0.45\textwidth]{stats_plot_4_conditions_random.png}
+    \caption{Zestawienie dla poprawnego rozwiązania na 4 Conditions.}
+\end{figure}
+
+\end{document}
