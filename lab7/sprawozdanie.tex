@@ -1,0 +1,301 @@
+% ...existing code...
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[polish]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{geometry}
+\usepackage{pgfplots}
+\usepackage{tikz}
+\usepackage{subcaption}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{shapes,arrows,positioning}
+
+\geometry{margin=2.5cm}
+
+\title{\textbf{Sprawozdanie z Projektu CSP} \\
+\large System Producent-Konsument z Tablicami Wag i Dispatcherami}
+\author{Filip Malejki}
+\date{\today}
+
+\lstset{
+    language=Java,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    breaklines=true,
+    frame=single
+}
+
+\graphicspath{{lab7/}{./lab7/}{.}}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Wprowadzenie}
+
+Sprawozdanie przedstawia implementację i wyniki eksperymentów systemu producent-konsument w paradygmacie CSP (JCSP) z mechanizmem wag i dispatcherami. Dokument wykorzystuje dane wyjściowe z katalogu \texttt{lab7} projektu (pliki \texttt{output*.csv}, \texttt{buffers.csv}, \texttt{results.csv}) oraz wygenerowane wykresy.
+
+\subsection{Cel projektu}
+
+Głównym celem projektu było:
+\begin{itemize}
+    \item Implementacja systemu producent-konsument z wieloma buforami,
+    \item Wprowadzenie adaptacyjnego mechanizmu wag i dispatcherów do równoważenia obciążenia,
+    \item Przeprowadzenie serii testów i analiza rozkładu obciążeń między buforami,
+    \item Prezentacja wyników i propozycje usprawnień.
+\end{itemize}
+
+\section{Architektura Systemu}
+
+\subsection{Schemat działania}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=1.5cm and 1.2cm,
+    process/.style={rectangle, draw, fill=blue!20, text width=2cm, text centered, minimum height=0.8cm, font=\small},
+    buffer/.style={rectangle, draw, fill=green!20, text width=1.5cm, text centered, minimum height=0.8cm, font=\small},
+    dispatcher/.style={ellipse, draw, fill=orange!20, text width=1.8cm, text centered, minimum height=0.8cm, font=\small},
+    arrow/.style={->,>=stealth,thick}
+]
+
+\node[process] (p1) at (0,2) {Producent 1};
+\node[process] (p2) at (0,0.5) {Producent 2};
+\node[process] (p3) at (0,-1) {Producent P};
+
+\node[dispatcher] (pd) at (3,0.5) {Producer\\Dispatcher};
+
+\node[buffer] (b1) at (6,2) {Bufor 0};
+\node[buffer] (b2) at (6,0.5) {Bufor 1};
+\node[buffer] (b3) at (6,-1) {Bufor B};
+
+\node[dispatcher] (cd) at (9,0.5) {Consumer\\Dispatcher};
+
+\node[process] (c1) at (12,2) {Konsument 1};
+\node[process] (c2) at (12,0.5) {Konsument 2};
+\node[process] (c3) at (12,-1) {Konsument K};
+
+\draw[arrow] (p1) -- node[above,font=\tiny] {dane} (b1);
+\draw[arrow] (p1) -- (b2);
+\draw[arrow] (p2) -- (b1);
+\draw[arrow] (p2) -- (b2);
+\draw[arrow] (p2) -- (b3);
+\draw[arrow] (p3) -- (b2);
+\draw[arrow] (p3) -- (b3);
+
+\draw[arrow,dashed,red] (p1) to[bend left=15] node[above,font=\tiny] {sync} (pd);
+\draw[arrow,dashed,red] (pd) to[bend left=15] (p1);
+\draw[arrow,dashed,red] (p2) -- (pd);
+\draw[arrow,dashed,red] (pd) -- (p2);
+\draw[arrow,dashed,red] (p3) to[bend right=15] (pd);
+\draw[arrow,dashed,red] (pd) to[bend right=15] (p3);
+
+\draw[arrow] (b1) -- (c1);
+\draw[arrow] (b2) -- (c1);
+\draw[arrow] (b1) -- (c2);
+\draw[arrow] (b2) -- (c2);
+\draw[arrow] (b3) -- (c2);
+\draw[arrow] (b2) -- (c3);
+\draw[arrow] (b3) -- (c3);
+
+\draw[arrow,dashed,blue] (c1) to[bend right=15] node[above,font=\tiny] {sync} (cd);
+\draw[arrow,dashed,blue] (cd) to[bend right=15] (c1);
+\draw[arrow,dashed,blue] (c2) -- (cd);
+\draw[arrow,dashed,blue] (cd) -- (c2);
+\draw[arrow,dashed,blue] (c3) to[bend left=15] (cd);
+\draw[arrow,dashed,blue] (cd) to[bend left=15] (c3);
+
+\node[font=\tiny,align=left] at (6,-2.5) {
+    \textbf{Legenda:} \\
+    \tikz\draw[arrow] (0,0) -- (0.3,0); dane (wybór wg wag) \\
+    \tikz\draw[arrow,dashed,red] (0,0) -- (0.3,0); synchronizacja (agregacja statystyk)
+};
+
+\end{tikzpicture}
+\caption{Architektura systemu: producenci wybierają bufory wg wag; dispatchery agregują metryki i korygują wagi.}
+\label{fig:architecture}
+\end{figure}
+
+\subsection{Algorytm równoważenia obciążenia (skrót)}
+Wagi aktualizowane są lokalnie i globalnie (EMA). W dokumentacji kodu i w katalogu \texttt{lab7} dostępny jest pełny opis algorytmu i implementacji.
+
+\section{Konfiguracje testów}
+W katalogu \texttt{lab7} są pliki wynikowe: \texttt{output555.csv}, \texttt{output51010.csv}, \texttt{output10105.csv}, \texttt{output101010.csv}, \texttt{output10510.csv}, \texttt{buffers.csv} i \texttt{results.csv}. Testy obejmują różne kombinacje liczby producentów (P), konsumentów (K) i buforów (B). Dokładne parametry każdego pliku widoczne są w nazwie pliku oraz w nagłówkach CSV.
+
+\section{Wyniki eksperymentów i wykresy}
+
+\texttt{plot.py} służy do generacji wykresów.
+\begin{verbatim}
+cd lab7
+python3 plot.py
+\end{verbatim}
+
+\subsection{Wykresy obciążeń}
+Poniżej załączam wykresy wygenerowane przez skrypty w \texttt{lab7}. Jeśli nie masz PNG, uruchom \texttt{plot.py}.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}{0.48\textwidth}
+    \IfFileExists{Obciazenia_buforow_5P_5B_5K.png}{\includegraphics[width=\linewidth]{Obciazenia_buforow_5P_5B_5K.png}}{\fbox{\parbox[c][4cm][c]{\linewidth}{Brak pliku Obciazenia_buforow_5P_5B_5K.png}}}
+    \caption{obciazenie buforow (P=5,K=5,B=3)}
+  \end{subfigure}\hfill
+  \begin{subfigure}{0.48\textwidth}
+    \IfFileExists{Obciazenia_buforow_5P_10B_10K.png}{\includegraphics[width=\linewidth]{Obciazenia_buforow_5P_10B_10K.png}}{\fbox{\parbox[c][4cm][c]{\linewidth}{Brak pliku Obciazenia_buforow_5P_10B_10K.png}}}
+    \caption{obciazenie buforow (P=5,K=10,B=10)}
+  \end{subfigure}
+
+  \vspace{6pt}
+
+  \begin{subfigure}{0.48\textwidth}
+    \IfFileExists{Obciazenia_buforow_10P_10B_5K.png}{\includegraphics[width=\linewidth]{Obciazenia_buforow_10P_10B_5K.png}}{\fbox{\parbox[c][4cm][c]{\linewidth}{Brak pliku Obciazenia_buforow_10P_10B_5K.png}}}
+    \caption{obciazenie buforow (P=10,K=10,B=5)}
+  \end{subfigure}\hfill
+  \begin{subfigure}{0.48\textwidth}
+    \IfFileExists{Obciazenia_buforow_5P_2B_5K.png}{\includegraphics[width=\linewidth]{Obciazenia_buforow_5P_2B_5K.png}}{\fbox{\parbox[c][4cm][c]{\linewidth}{Brak pliku Obciazenia_buforow_5P_2B_5K.png}}}
+    \caption{obciazenie buforow (P=5,K=2,B=5)}
+  \end{subfigure}
+
+  \vspace{6pt}
+
+  \begin{subfigure}{0.48\textwidth}
+    \IfFileExists{Obciazenia_buforow_10P_5B_10K.png}{\includegraphics[width=\linewidth]{Obciazenia_buforow_10P_5B_10K.png}}{\fbox{\parbox[c][4cm][c]{\linewidth}{Brak pliku Obciazenia_buforow_10P_5B_10K.png}}}
+    \caption{obciazenie buforow (P=10,K=5,B=10)}
+  \end{subfigure}\hfill
+  \begin{subfigure}{0.48\textwidth}
+    \IfFileExists{Porownanie_testow.png}{\includegraphics[width=\linewidth]{Porownanie_testow.png}}{\fbox{\parbox[c][4cm][c]{\linewidth}{Brak pliku Porownanie_testow.png}}}
+    \caption{porownanie roznych testow}
+  \end{subfigure}
+\end{figure}
+
+\section{Analiza jakości równoważenia}
+Ogólne obserwacje:
+\begin{itemize}
+  \item W testach z małą liczbą buforów fluktuacje krótkookresowe są większe, ale dispatcher stabilizuje rozkład.
+  \item Zwiększenie liczby buforów zwykle podnosi przepustowość i obniża CV między buforami.
+  \item Straty (różnica wyprodukowanych i skonsumowanych) są minimalne — szczegóły w \texttt{lab7/results.csv}.
+\end{itemize}
+
+\section{Fragmenty kluczowego kodu}
+Poniżej najważniejsze fragmenty (zgodne z repo). Pełne pliki źródłowe znajdują się w \texttt{projektcsp/src}.
+
+\begin{lstlisting}[caption={Wybór bufora (fragment)}]
+private static int selectByWeight(double[] weights, Random rand) {
+    double total = 0;
+    for (double w : weights) total += w;
+    double r = rand.nextDouble() * total;
+    double cumulative = 0;
+    for (int i = 0; i < weights.length; i++) {
+        cumulative += weights[i];
+        if (r <= cumulative) 
+            return i;
+    }
+    return weights.length - 1;
+}
+\end{lstlisting}
+
+\begin{lstlisting}[caption={Aktualizacja wag (fragment)}]
+private static void updateWeight(double[] weights, int index, long waitTimeNanos) {
+    double newWeight = 1.0 / (1.0 + waitTimeNanos / 1_000_000.0);
+    weights[index] = 0.7 * weights[index] + 0.3 * newWeight;
+    if (weights[index] < 0.01) weights[index] = 0.01;
+}
+\end{lstlisting}
+\begin{lstlisting}[caption={Producent - uruchomienie i wagi}]
+        for (int p = 0; p < numProducers; p++) {
+            final int pid = p;
+            final One2OneChannel myDispatcherResponse = producerDispatcherOut[p];
+            final ArrayBlockingQueue<Integer>[] queues = bufferQueues;
+            final long endTime = stopTimeMillis;
+            
+            processes[idx++] = () -> {
+                Random rand = new Random(pid * 1000 + System.nanoTime());
+                CSTimer timer = new CSTimer();
+                
+                double[] weights = new double[numBuffers + 1];
+                long[] waitTimes = new long[numBuffers + 1];
+                
+                for (int i = 0; i <= numBuffers; i++) {
+                    weights[i] = 1.0;
+                    waitTimes[i] = 0;
+                }
+                
+\end{lstlisting}
+\begin{lstlisting}[caption={Konsument - deklaracja i wagi}]
+        for (int c = 0; c < numConsumers; c++) {
+            final int cid = c;
+            final One2OneChannel myDispatcherResponse = consumerDispatcherOut[c];
+            final ArrayBlockingQueue<Integer>[] queues = bufferQueues;
+            final long endTime = stopTimeMillis;
+            
+            processes[idx++] = () -> {
+                Random rand = new Random(cid * 2000 + System.nanoTime());
+                CSTimer timer = new CSTimer();
+                
+                double[] weights = new double[numBuffers + 1];
+                long[] waitTimes = new long[numBuffers + 1];
+                boolean[] bufferAlive = new boolean[numBuffers];
+                
+                for (int i = 0; i <= numBuffers; i++) {
+                    weights[i] = 1.0;
+                    waitTimes[i] = 0;
+                }
+                for (int i = 0; i < numBuffers; i++) {
+                    bufferAlive[i] = true;
+                }
+\end{lstlisting}
+\begin{lstlisting}[caption={Deklaracja buforow, procesow, kanalow i zmiennych globalnych}]
+                ArrayBlockingQueue<Integer>[] bufferQueues = new ArrayBlockingQueue[numBuffers];
+        for (int i = 0; i < numBuffers; i++) {
+            bufferQueues[i] = new ArrayBlockingQueue<>(1000);
+        }
+        
+        Any2OneChannel producerDispatcherIn = Channel.any2one();
+        One2OneChannel[] producerDispatcherOut = new One2OneChannel[numProducers];
+        for (int i = 0; i < numProducers; i++) {
+            producerDispatcherOut[i] = Channel.one2one();
+        }
+        
+        Any2OneChannel consumerDispatcherIn = Channel.any2one();
+        One2OneChannel[] consumerDispatcherOut = new One2OneChannel[numConsumers];
+        for (int i = 0; i < numConsumers; i++) {
+            consumerDispatcherOut[i] = Channel.one2one();
+        }
+        
+        AtomicInteger itemCounter = new AtomicInteger(0);
+        AtomicInteger activeProducers = new AtomicInteger(numProducers);
+        AtomicInteger activeConsumers = new AtomicInteger(numConsumers);
+        
+        CSProcess[] processes = new CSProcess[numProducers + numConsumers + 2];
+        int idx = 0;
+\end{lstlisting}
+
+\section{Wnioski i rekomendacje}
+
+Zalety:
+\begin{itemize}
+  \item Skuteczne wyrównywanie obciążenia między buforami (niskie roznice w większości testów).
+  \item Dobra skalowalność z liczbą procesów i buforów.
+  \item Małe straty danych i stabilne czasy wykonania.
+\end{itemize}
+
+Wady / możliwości poprawy:
+\begin{itemize}
+  \item Dispatcher może stać się wąskim gardłem przy ekstremalnej skali — rozważyć sharding dispatcherów.
+  \item Koszt komunikacji przy częstych aktualizacjach wag — rozważyć rzadsze/batched aktualizacje lub lokalne polityki.
+  \item Dodatkowe metryki (percentyle latencji, wykresy czasów oczekiwania) ułatwią dalszą diagnostykę.
+\end{itemize}
+
+\end{document}
