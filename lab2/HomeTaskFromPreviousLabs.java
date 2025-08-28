@@ -12,7 +12,7 @@ public class HomeTaskFromPreviousLabs {
             int id = i;
             new Thread(() -> {
                 try {
-                    
+
                     while (true) {
                         buffer.produce("Item-from P" + id);
                     }
@@ -21,6 +21,7 @@ public class HomeTaskFromPreviousLabs {
                 }
             }, "Producer-" + i).start();
         }
+        
 
         for (int i = 1; i <= N; i++) {
             int id = i;
