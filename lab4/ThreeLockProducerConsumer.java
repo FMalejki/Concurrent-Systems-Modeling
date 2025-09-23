@@ -12,7 +12,7 @@ public class ThreeLockProducerConsumer {
     static final int N = 4;
     static final int BUFFER_SIZE = 10;
     static final long RUN_MS = 5_000;
-    
+
 
     static volatile boolean running = true;
 
@@ -22,6 +22,7 @@ public class ThreeLockProducerConsumer {
 
         List<Thread> threads = new ArrayList<>();
 
+        
         for (int i = 1; i <= M; i++) {
             String name = "Producer-" + i;
             stats.put(name, new Stats(name, Role.PRODUCER));
