@@ -13,7 +13,7 @@ public class PK_NoStarvation {
     static final long RUN_MS = 5_000;      // czas
 
     static volatile boolean running = true;
-    
+
 
     public static void main(String[] args) throws InterruptedException {
         ConcurrentHashMap<String, Stats> stats = new ConcurrentHashMap<>();
@@ -21,6 +21,7 @@ public class PK_NoStarvation {
 
         List<Thread> threads = new ArrayList<>();
 
+        
         // Producer
         for (int i = 1; i <= M; i++) {
             String name = "Producer-" + i;
